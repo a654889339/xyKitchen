@@ -1,0 +1,38 @@
+<view class="page">
+  <!-- 开场动画（与网页 SplashScreen 一致：splash 板块） -->
+  <view wx:if="{{showSplash}}" class="splash-screen" style="background: {{splashBg}}" bindtap="dismissSplash">
+    <view class="splash-content">
+      <image wx:if="{{splashImageUrl}}" src="{{splashImageUrl}}" class="splash-logo-img" mode="aspectFit" />
+      <view wx:if="{{splashText}}" class="splash-desc" style="color: {{splashTextColor}}">{{splashText}}</view>
+      <view class="splash-progress">
+        <view class="splash-progress-bar"></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="home-bg">
+    <swiper wx:if="{{heroBgList.length}}" class="home-bg-swiper" autoplay circular interval="4000" indicator-dots indicator-color="rgba(255,255,255,0.5)">
+      <block wx:for="{{heroBgList}}" wx:key="url">
+        <swiper-item>
+          <image class="home-bg-image" src="{{item.displayUrl}}" mode="aspectFill" data-idx="{{index}}" binderror="onHeroBgError" />
+        </swiper-item>
+      </block>
+    </swiper>
+    <image wx:elif="{{heroBgUrl}}" class="home-bg-image" src="{{heroBgUrl}}" mode="aspectFill" />
+  </view>
+
+  <view class="hero">
+    <view class="hero-overlay">
+      <view class="hero-header">
+        <image wx:if="{{headerLogoUrl}}" src="{{headerLogoUrl}}" class="hero-logo" mode="aspectFit" />
+        <text wx:else class="hero-logo-text">xyKitchen</text>
+        <view class="hero-actions">
+          <view class="lang-switcher" bindtap="onLangTap">
+            <text class="lang-label">{{langLabel}}</text>
+            <text class="lang-arrow">▾</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

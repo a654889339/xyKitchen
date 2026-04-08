@@ -1,0 +1,18 @@
+[Unit]
+Description=xyKitchen Go API (port 5402)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/xyKitchen/backend
+Environment=NODE_ENV=production
+Environment=PORT=5402
+EnvironmentFile=-/home/ubuntu/xyKitchen/backend/.env
+ExecStart=/home/ubuntu/xyKitchen/backend/xykitchen-server
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

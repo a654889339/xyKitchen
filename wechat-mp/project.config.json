@@ -1,0 +1,17 @@
+{
+  "description": "xyKitchen 微信小程序（仅首页动画）",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": true
+  },
+  "compileType": "miniprogram",
+  "appid": "wxf6fdff25c117e86d",
+  "projectname": "xykitchen-wechat-mp",
+  "condition": {}
+}
