@@ -36,6 +36,12 @@ elif command -v lsof >/dev/null 2>&1; then
   L="$(lsof -t -i:5402 2>/dev/null || true)"
   if [[ -n "$L" ]]; then kill $L || true; sleep 1; fi
 fi
+if [[ -f "$ROOT/backend/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ROOT/backend/.env"
+  set +a
+fi
 nohup ./xykitchen-server >>"$ROOT/logs/backend.log" 2>&1 &
 echo $! >"$PID_FILE"
 sleep 1
