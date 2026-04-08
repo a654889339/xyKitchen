@@ -2,4 +2,6 @@
 /backend/xykitchen-server.exe
 /backend/.env
 **/node_modules/
+frontend-web/node_modules/
 .DS_Store
+wechat-mp/project.private.config.json

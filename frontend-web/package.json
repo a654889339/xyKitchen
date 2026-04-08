@@ -1,0 +1,16 @@
+{
+  "name": "xykitchen-frontend-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "xyKitchen 网页前台（首页动画，与小程序一致）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

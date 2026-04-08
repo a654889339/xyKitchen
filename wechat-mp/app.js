@@ -1,5 +1,3 @@
-const i18n = require('./utils/i18n.js');
-
 App({
   globalData: {
     baseUrl: 'http://106.54.50.88:5402/api',
@@ -7,9 +5,8 @@ App({
     token: '',
   },
 
-  onLaunch() {
-    i18n.loadI18nTexts();
-  },
+  // 勿在 onLaunch 里发起网络请求，避免部分基础库出现 appLaunch / 页面栈异常与启动超时
+  onLaunch() {},
 
   request(options) {
     const app = this;
@@ -19,6 +16,7 @@ App({
         url: baseUrl + options.url,
         method: options.method || 'GET',
         data: options.data,
+        timeout: options.timeout || 20000,
         header: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: 'Bearer ' + token } : {}),

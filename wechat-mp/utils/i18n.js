@@ -19,6 +19,7 @@ function setLang(lang) {
 
 function _getBaseUrl() {
   try {
+    if (typeof getApp !== 'function') return DEFAULT_BASE_URL;
     const app = getApp();
     if (app && app.globalData && app.globalData.baseUrl) return app.globalData.baseUrl;
   } catch (e) {}
@@ -26,21 +27,13 @@ function _getBaseUrl() {
 }
 
 function detectLangByIp(cb) {
-  if (_lang) { if (cb) cb(_lang); return; }
-  wx.request({
-    url: 'https://ipapi.co/json/',
-    timeout: 3000,
-    success(res) {
-      const d = res.data || {};
-      const cn = d.country_code === 'CN' || d.country_code === 'HK' || d.country_code === 'MO' || d.country_code === 'TW';
-      setLang(cn ? 'zh' : 'en');
-      if (cb) cb(getLang());
-    },
-    fail() {
-      setLang('zh');
-      if (cb) cb('zh');
-    },
-  });
+  if (_lang) {
+    if (cb) cb(_lang);
+    return;
+  }
+  // 启动阶段不请求外网 IP 地理接口，避免超时、合法域名与「appLaunch」相关问题；用户可在页内切换语言
+  setLang('zh');
+  if (cb) cb('zh');
 }
 
 function loadI18nTexts(cb) {
@@ -50,11 +43,15 @@ function loadI18nTexts(cb) {
   _loading = true;
   wx.request({
     url: _getBaseUrl() + '/i18n',
+    timeout: 8000,
     success(res) {
       const data = (res.data && res.data.data) || [];
       for (const item of data) {
         _texts[item.key] = { zh: item.zh, en: item.en };
       }
+      _loaded = true;
+    },
+    fail() {
       _loaded = true;
     },
     complete() {

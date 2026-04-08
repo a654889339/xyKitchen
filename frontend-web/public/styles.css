@@ -1,0 +1,172 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #e8e8ed;
+  min-height: 100vh;
+}
+
+.page {
+  background: transparent;
+  min-height: 100vh;
+  position: relative;
+}
+
+.home-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 78vh;
+  min-height: 400px;
+  z-index: 0;
+  background: transparent;
+}
+
+.home-bg-swiper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.home-bg-swiper img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.home-bg-swiper img.is-active {
+  opacity: 1;
+}
+
+.hero {
+  height: min(55vw, 640px);
+  min-height: 400px;
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, transparent 50%, rgba(255,255,255,0.05) 100%);
+}
+
+.hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+}
+
+.hero-logo {
+  height: 32px;
+  width: auto;
+  max-width: 120px;
+}
+
+.hero-logo-text {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.lang-switcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.lang-label { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.9); }
+.lang-arrow { font-size: 12px; color: rgba(255,255,255,0.7); }
+
+/* 开场动画 */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.splash-screen--hidden {
+  display: none;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  max-width: 360px;
+  width: 100%;
+  padding: 0 24px;
+}
+
+.splash-logo-img {
+  max-width: 200px;
+  max-height: 140px;
+  object-fit: contain;
+  opacity: 0;
+  animation: splashCharIn 0.6s 0.3s ease forwards;
+}
+
+.splash-desc {
+  font-size: 15px;
+  text-align: center;
+  letter-spacing: 1px;
+  line-height: 1.5;
+  max-width: 300px;
+  min-height: 22px;
+  opacity: 0;
+  animation: splashCharIn 0.5s 0.8s ease forwards;
+}
+
+.splash-progress {
+  width: 140px;
+  height: 2px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  opacity: 0;
+  animation: splashFadeIn 0.3s 1.2s ease forwards;
+}
+
+.splash-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #b91c1c, #ef4444);
+  border-radius: 2px;
+  animation: splashProgressFill 1.8s 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  width: 0;
+}
+
+@keyframes splashCharIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes splashFadeIn {
+  to { opacity: 1; }
+}
+
+@keyframes splashProgressFill {
+  to { width: 100%; }
+}

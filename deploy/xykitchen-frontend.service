@@ -1,0 +1,18 @@
+[Unit]
+Description=xyKitchen web frontend (Node, port 5401)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/xyKitchen/frontend-web
+Environment=PORT=5401
+ExecStart=/usr/bin/node /home/ubuntu/xyKitchen/frontend-web/server.js
+Restart=on-failure
+RestartSec=3
+StandardOutput=append:/home/ubuntu/xyKitchen/logs/frontend.log
+StandardError=append:/home/ubuntu/xyKitchen/logs/frontend.log
+
+[Install]
+WantedBy=multi-user.target

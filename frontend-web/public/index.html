@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>xyKitchen</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="splash" class="splash-screen splash-screen--hidden" aria-hidden="true">
+    <div class="splash-content">
+      <img id="splashImg" class="splash-logo-img" alt="" hidden />
+      <div id="splashText" class="splash-desc"></div>
+      <div class="splash-progress"><div class="splash-progress-bar"></div></div>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="home-bg" id="homeBg"></div>
+    <div class="hero">
+      <div class="hero-overlay">
+        <div class="hero-header">
+          <img id="headerLogo" class="hero-logo" alt="logo" hidden />
+          <span id="headerLogoText" class="hero-logo-text">xyKitchen</span>
+          <div class="hero-actions">
+            <button type="button" class="lang-switcher" id="langBtn" aria-label="语言">
+              <span class="lang-label" id="langLabel">中</span>
+              <span class="lang-arrow">▾</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.__XYKITCHEN_API__ = 'http://106.54.50.88:5402/api';
+  </script>
+  <script src="/app.js" defer></script>
+</body>
+</html>

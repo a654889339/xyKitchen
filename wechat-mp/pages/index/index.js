@@ -1,4 +1,3 @@
-const app = getApp();
 const i18n = require('../../utils/i18n.js');
 
 const SPLASH_SESSION_KEY = 'xykitchen_splash_shown';
@@ -17,16 +16,32 @@ Page({
   },
 
   _splashTimer: null,
+  _bootstrapped: false,
+
+  onLoad() {
+    // 不在模块顶层调用 getApp()，避免 App 未就绪时触发异常
+  },
 
   onShow() {
+    if (this._bootstrapped) {
+      return;
+    }
+    this._bootstrapped = true;
     const self = this;
     const run = () => {
-      i18n.detectLangByIp((lang) => {
+      i18n.detectLangByIp(() => {
         self.setData({
           langLabel: i18n.isEn() ? 'EN' : i18n.t('lang.zhLabel', '中'),
         });
       });
-      self.loadAnimationConfig(() => self.maybeShowSplash());
+      self.loadAnimationConfig(() => {
+        const runSplash = () => self.maybeShowSplash();
+        if (typeof wx.nextTick === 'function') {
+          wx.nextTick(runSplash);
+        } else {
+          setTimeout(runSplash, 0);
+        }
+      });
     };
     if (i18n.isLoaded()) {
       run();
@@ -65,7 +80,9 @@ Page({
       }
     } catch (e) {}
     this.setData({ showSplash: true });
-    wx.setStorageSync(SPLASH_SESSION_KEY, '1');
+    try {
+      wx.setStorageSync(SPLASH_SESSION_KEY, '1');
+    } catch (e) {}
     this._splashTimer = setTimeout(() => {
       this.setData({ showSplash: false });
       this._splashTimer = null;
@@ -81,6 +98,7 @@ Page({
   },
 
   loadAnimationConfig(done) {
+    const app = getApp();
     const base = (app.globalData.baseUrl || '').replace(/\/api\/?$/, '') || 'http://106.54.50.88:5402';
     const toFull = (u) => {
       if (!u || typeof u !== 'string') return u || '';
@@ -89,7 +107,8 @@ Page({
       return base + (t.startsWith('/') ? t : '/' + t);
     };
 
-    app.request({ url: '/home-config?all=1' })
+    app
+      .request({ url: '/home-config?all=1', timeout: 20000 })
       .then((res) => {
         const items = res.data || [];
         const splash = items.find((i) => i.section === 'splash' && i.status === 'active');
