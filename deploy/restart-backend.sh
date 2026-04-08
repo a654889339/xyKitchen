@@ -12,6 +12,8 @@ elif command -v docker >/dev/null 2>&1; then
   DOCKER="docker"
   if ! docker info >/dev/null 2>&1; then DOCKER="sudo docker"; fi
   $DOCKER run --rm \
+    -e GOPROXY=https://goproxy.cn,direct \
+    -e GOSUMDB=sum.golang.google.cn \
     -v "$ROOT/backend:/app" -w /app \
     golang:1.22-bookworm \
     bash -c 'go mod tidy && go build -o xykitchen-server ./cmd/server'
