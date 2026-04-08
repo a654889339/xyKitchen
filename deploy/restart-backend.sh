@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# 仅在服务器上使用：编译 xyKitchen 后端并替换监听 5402 的进程。不操作 Docker。
+# 仅在服务器上使用：编译 xyKitchen 后端并替换监听 5402 的进程。
+# 不执行 docker compose / 不重启 Docker 守护进程；可选「一次性」golang 镜像仅用于 go build。
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 mkdir -p "$ROOT/logs" "$ROOT/run"
