@@ -7,8 +7,16 @@ cd "$ROOT/backend"
 export GOTOOLCHAIN=local
 if command -v go >/dev/null 2>&1; then
   go build -o xykitchen-server ./cmd/server
+elif command -v docker >/dev/null 2>&1; then
+  # 一次性编译容器，不重启现有业务容器、不动 compose
+  DOCKER="docker"
+  if ! docker info >/dev/null 2>&1; then DOCKER="sudo docker"; fi
+  $DOCKER run --rm \
+    -v "$ROOT/backend:/app" -w /app \
+    golang:1.22-bookworm \
+    go build -o xykitchen-server ./cmd/server
 else
-  echo "go: command not found — install Go or add to PATH" >&2
+  echo "需要本机 Go 或 Docker 以编译后端" >&2
   exit 1
 fi
 PID_FILE="$ROOT/run/backend.pid"
