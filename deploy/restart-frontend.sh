@@ -29,6 +29,12 @@ fi
 export PORT="${PORT:-5401}"
 nohup node server.js >>"$ROOT/logs/frontend.log" 2>&1 &
 echo $! >"$PID_FILE"
-sleep 1
-curl -sf "http://127.0.0.1:${PORT}/" | head -c 80 >/dev/null || { echo "frontend health check failed"; exit 1; }
-echo "xyKitchen frontend (port ${PORT}) OK"
+for i in $(seq 1 10); do
+  sleep 1
+  if curl -sf "http://127.0.0.1:${PORT}/" | head -c 80 >/dev/null; then
+    echo "xyKitchen frontend (port ${PORT}) OK (waited ${i}s)"
+    exit 0
+  fi
+done
+echo "frontend health check failed after 10s — check logs/frontend.log" >&2
+exit 1

@@ -45,6 +45,13 @@ if [[ -f "$ROOT/backend/.env" ]]; then
 fi
 nohup ./xykitchen-server >>"$ROOT/logs/backend.log" 2>&1 &
 echo $! >"$PID_FILE"
-sleep 1
-curl -sf "http://127.0.0.1:5402/api/health" | head -c 200 || { echo "health check failed"; exit 1; }
-echo "xyKitchen backend restarted OK"
+for i in $(seq 1 15); do
+  sleep 1
+  if curl -sf "http://127.0.0.1:5402/api/health" | head -c 200; then
+    echo ""
+    echo "xyKitchen backend restarted OK (waited ${i}s)"
+    exit 0
+  fi
+done
+echo "health check failed after 15s — check logs/backend.log" >&2
+exit 1
