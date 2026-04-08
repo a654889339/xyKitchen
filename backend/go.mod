@@ -1,4 +1,4 @@
-﻿module xykitchen/backend
+module xykitchen/backend
 
 go 1.22
 

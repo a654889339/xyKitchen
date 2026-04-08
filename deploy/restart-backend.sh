@@ -14,7 +14,7 @@ elif command -v docker >/dev/null 2>&1; then
   $DOCKER run --rm \
     -v "$ROOT/backend:/app" -w /app \
     golang:1.22-bookworm \
-    go build -o xykitchen-server ./cmd/server
+    bash -c 'go mod tidy && go build -o xykitchen-server ./cmd/server'
 else
   echo "需要本机 Go 或 Docker 以编译后端" >&2
   exit 1
