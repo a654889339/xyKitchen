@@ -5,8 +5,14 @@ App({
     token: '',
   },
 
-  // 勿在 onLaunch 里发起网络请求，避免部分基础库出现 appLaunch / 页面栈异常与启动超时
-  onLaunch() {},
+  onLaunch() {
+    try {
+      const t = wx.getStorageSync('xykitchen_token');
+      if (t) {
+        this.globalData.token = t;
+      }
+    } catch (e) {}
+  },
 
   request(options) {
     const app = this;

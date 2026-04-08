@@ -1,10 +1,15 @@
 {
-  "pages": ["pages/index/index"],
+  "pages": [
+    "pages/index/index",
+    "pages/booking-notice/booking-notice",
+    "pages/booking/booking",
+    "pages/orders/orders"
+  ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#E8E8ED",
+    "navigationBarBackgroundColor": "#a32626",
     "navigationBarTitleText": "xyKitchen",
-    "navigationBarTextStyle": "black"
+    "navigationBarTextStyle": "white"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json"

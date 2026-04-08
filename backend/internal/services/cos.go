@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/disintegration/imaging"
@@ -23,6 +24,34 @@ const (
 )
 
 var cosBaseURL = fmt.Sprintf("https://%s.cos.%s.myqcloud.com", cosBucket, cosRegion)
+
+// localPublicURL 本地上传后的访问地址（/uploads/...）。若配置 PUBLIC_BASE_URL 则返回绝对 URL（小程序图片等场景需要）。
+func localPublicURL(relativePath string) string {
+	relativePath = strings.TrimPrefix(relativePath, "/")
+	p := "/uploads/" + relativePath
+	base := strings.TrimRight(os.Getenv("PUBLIC_BASE_URL"), "/")
+	if base != "" {
+		return base + p
+	}
+	return p
+}
+
+func sanitizeUploadFilename(name string) string {
+	name = filepath.Base(strings.ReplaceAll(name, "..", ""))
+	if name == "" || name == "." {
+		return "file.bin"
+	}
+	return name
+}
+
+func writeLocalUpload(relativePath string, buf []byte) error {
+	relativePath = strings.TrimPrefix(relativePath, "/")
+	full := filepath.Join("public", "uploads", filepath.FromSlash(relativePath))
+	if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(full, buf, 0o644)
+}
 
 func cosClient() (*cos.Client, error) {
 	sid := os.Getenv("COS_SECRET_ID")
@@ -127,9 +156,15 @@ func generateThumbBufferMax(buf []byte, contentType string, maxW int) ([]byte, s
 func UploadThumb(ctx context.Context, buf []byte, filename, contentType string) (string, error) {
 	c, err := cosClient()
 	if err != nil {
-		return "", err
+		fn := sanitizeUploadFilename(filename)
+		rel := "thumb/" + fn
+		if err := writeLocalUpload(rel, buf); err != nil {
+			return "", err
+		}
+		return localPublicURL(rel), nil
 	}
-	key := "vino/uploads/thumb/" + filename
+	fn := sanitizeUploadFilename(filename)
+	key := "vino/uploads/thumb/" + fn
 	_, err = c.Object.Put(ctx, key, bytes.NewReader(buf), &cos.ObjectPutOptions{
 		ACLHeaderOptions: &cos.ACLHeaderOptions{
 			XCosACL: "public-read",
@@ -166,11 +201,15 @@ func UploadWithThumb(ctx context.Context, buf []byte, filename, contentType stri
 }
 
 func UploadCOS(ctx context.Context, buf []byte, filename, contentType string) (string, error) {
+	fn := sanitizeUploadFilename(filename)
 	c, err := cosClient()
 	if err != nil {
-		return "", err
+		if err := writeLocalUpload(fn, buf); err != nil {
+			return "", fmt.Errorf("COS 未配置且本地写入失败: %w", err)
+		}
+		return localPublicURL(fn), nil
 	}
-	key := "vino/uploads/" + filename
+	key := "vino/uploads/" + fn
 	_, err = c.Object.Put(ctx, key, bytes.NewReader(buf), &cos.ObjectPutOptions{
 		ACLHeaderOptions: &cos.ACLHeaderOptions{
 			XCosACL: "public-read",
@@ -186,23 +225,11 @@ func UploadCOS(ctx context.Context, buf []byte, filename, contentType string) (s
 }
 
 func UploadCOSReader(ctx context.Context, r io.Reader, filename, contentType string) (string, error) {
-	c, err := cosClient()
+	buf, err := io.ReadAll(r)
 	if err != nil {
 		return "", err
 	}
-	key := "vino/uploads/" + filename
-	_, err = c.Object.Put(ctx, key, r, &cos.ObjectPutOptions{
-		ACLHeaderOptions: &cos.ACLHeaderOptions{
-			XCosACL: "public-read",
-		},
-		ObjectPutHeaderOptions: &cos.ObjectPutHeaderOptions{
-			ContentType: contentType,
-		},
-	})
-	if err != nil {
-		return "", err
-	}
-	return cosBaseURL + "/" + key, nil
+	return UploadCOS(ctx, buf, filename, contentType)
 }
 
 func IsKeyAllowedForProxy(key string) bool {

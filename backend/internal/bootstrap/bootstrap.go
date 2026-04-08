@@ -7,7 +7,6 @@ import (
 	"xykitchen/backend/internal/models"
 	"xykitchen/backend/internal/services"
 
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -39,7 +38,6 @@ func Run() error {
 		log.Println("[DB] Default admin account created.")
 	}
 
-	// 若 i18n 为空，插入少量关键键（完整种子见原 Node 或数据库已有数据）
 	var i18nCount int64
 	_ = db.DB.Model(&models.I18nText{}).Count(&i18nCount).Error
 	if i18nCount == 0 {
@@ -69,22 +67,6 @@ func seedDefaultsIfEmpty() error {
 		log.Println("[DB] Default product categories created.")
 	}
 
-	var sc int64
-	if err := db.DB.Model(&models.ServiceCategory{}).Count(&sc).Error; err != nil {
-		return err
-	}
-	if sc == 0 {
-		if err := db.DB.Create([]models.ServiceCategory{
-			{Name: "维修", Key: strPtr("repair"), SortOrder: 1, Status: "active"},
-			{Name: "清洁", Key: strPtr("clean"), SortOrder: 2, Status: "active"},
-			{Name: "检测", Key: strPtr("inspect"), SortOrder: 3, Status: "active"},
-			{Name: "数据", Key: strPtr("data"), SortOrder: 4, Status: "active"},
-		}).Error; err != nil {
-			return err
-		}
-		log.Println("[DB] Default service categories created.")
-	}
-
 	var hc int64
 	if err := db.DB.Model(&models.HomeConfig{}).Count(&hc).Error; err != nil {
 		return err
@@ -98,30 +80,6 @@ func seedDefaultsIfEmpty() error {
 			return err
 		}
 		log.Println("[DB] Default home configs (partial) created.")
-	}
-
-	var svc int64
-	if err := db.DB.Model(&models.Service{}).Count(&svc).Error; err != nil {
-		return err
-	}
-	if svc == 0 {
-		var cats []models.ServiceCategory
-		if err := db.DB.Order("sortOrder ASC").Find(&cats).Error; err != nil {
-			return err
-		}
-		if len(cats) >= 4 {
-			repair, clean, inspect, data := cats[0].ID, cats[1].ID, cats[2].ID, cats[3].ID
-			services := []models.Service{
-				{Title: "设备维修", Description: "专业工程师提供全方位维修服务", Icon: "setting-o", CategoryID: &repair, Price: 99, OriginPrice: f64Ptr(159), Bg: "#B91C1C", SortOrder: 1, Status: "active"},
-				{Title: "深度清洁", Description: "全方位清洁保养", Icon: "brush-o", CategoryID: &clean, Price: 149, OriginPrice: f64Ptr(199), Bg: "#2563EB", SortOrder: 1, Status: "active"},
-				{Title: "全面检测", Description: "系统全面评估", Icon: "scan", CategoryID: &inspect, Price: 49, OriginPrice: f64Ptr(79), Bg: "#059669", SortOrder: 1, Status: "active"},
-				{Title: "数据恢复", Description: "专业数据找回", Icon: "replay", CategoryID: &data, Price: 199, OriginPrice: f64Ptr(299), Bg: "#7C3AED", SortOrder: 1, Status: "active"},
-			}
-			if err := db.DB.Create(&services).Error; err != nil {
-				return err
-			}
-			log.Println("[DB] Default services created.")
-		}
 	}
 
 	var dg int64
@@ -146,11 +104,25 @@ func seedDefaultsIfEmpty() error {
 		}
 	}
 
+	var bc int64
+	if err := db.DB.Model(&models.BookingConfig{}).Count(&bc).Error; err != nil {
+		return err
+	}
+	if bc == 0 {
+		row := models.BookingConfig{
+			NoticeTitle:      "預定須知",
+			NoticeBody:       "請在小程序或網頁端完成預訂流程。",
+			PerPersonDeposit: 50,
+			TimeSlotsJSON:    `["17:00","19:00","21:00"]`,
+			GuestOptionsJSON: `[2,3,4,6]`,
+		}
+		if err := db.DB.Create(&row).Error; err != nil {
+			return err
+		}
+		log.Println("[DB] Default booking config created.")
+	}
+
 	return nil
 }
 
 func strPtr(s string) *string { return &s }
-func f64Ptr(f float64) *float64 { return &f }
-
-// CleanDuplicateIndexes 可选：与 Node 一致清理重复索引（简化版跳过）
-func CleanDuplicateIndexes(_ *gorm.DB) {}

@@ -7,15 +7,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RegisterRoutes 注册 /api 下路由（xyKitchen 精简版）
+// RegisterRoutes 注册 /api 下路由（xyKitchen）
 func RegisterRoutes(engine *gin.Engine, cfg *config.Config) {
 	api := engine.Group("/api")
 
 	api.GET("/health", Health)
 
+	api.POST("/admin/seed", middleware.Auth(cfg), middleware.Admin(), SeedData)
+
 	api.GET("/media/cos", MediaCosStream)
 	api.POST("/analytics/page-view", AnalyticsPageView)
 	api.GET("/admin/page-visit-stats", middleware.Auth(cfg), middleware.Admin(), AnalyticsStats)
+
+	// 预订：公开读取配置与日历
+	api.GET("/booking-config", bookingConfigGet)
+	api.GET("/booking/calendar", bookingCalendar)
+	api.GET("/booking/meta", bookingMeta)
+
+	bcfg := api.Group("/booking-config")
+	{
+		bcfg.PUT("/", middleware.Auth(cfg), middleware.Admin(), bookingConfigPut)
+		bcfg.POST("/upload", middleware.Auth(cfg), middleware.Admin(), func(c *gin.Context) { bookingConfigUploadBg(c, cfg) })
+	}
 
 	auth := api.Group("/auth")
 	{
@@ -23,6 +36,7 @@ func RegisterRoutes(engine *gin.Engine, cfg *config.Config) {
 		auth.POST("/send-sms-code", func(c *gin.Context) { authSendSmsCode(c, cfg) })
 		auth.POST("/register", func(c *gin.Context) { authRegister(c, cfg) })
 		auth.POST("/login", func(c *gin.Context) { authLogin(c, cfg) })
+		auth.POST("/wx-login", func(c *gin.Context) { authWxLogin(c, cfg) })
 		auth.POST("/bind-phone", middleware.Auth(cfg), func(c *gin.Context) { authBindPhone(c, cfg) })
 		auth.GET("/profile", middleware.Auth(cfg), authGetProfile)
 		auth.PUT("/profile", middleware.Auth(cfg), authUpdateProfile)

@@ -189,7 +189,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="dash-nav-item" data-page="orders" onclick="switchPage('orders')">订单管理</div>
     <div class="dash-nav-item" data-page="users" onclick="switchPage('users')">用户管理</div>
     <div class="dash-nav-item" data-page="guides" onclick="switchPage('guides')">商品配置</div>
-    <div class="dash-nav-item" data-page="serviceConfig" onclick="switchPage('serviceConfig')">服务配置</div>
+    <div class="dash-nav-item" data-page="bookingConfig" onclick="switchPage('bookingConfig')">预订配置</div>
     <div class="dash-nav-item" data-page="inventory" onclick="switchPage('inventory')">商品库存</div>
     <div class="dash-nav-item" data-page="homeConfig" onclick="switchPage('homeConfig')">首页配置</div>
     <div class="dash-nav-item" data-page="homeAnimConfig" onclick="switchPage('homeAnimConfig')">首页动画配置</div>
@@ -268,13 +268,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       </div>
     </div>
 
-    <!-- 服务配置 Page -->
-    <div class="dash-page" id="page-serviceConfig">
+    <!-- 预订配置（首页背景 + 预订须知 + 订金规则） -->
+    <div class="dash-page" id="page-bookingConfig">
       <div class="dash-section">
         <div class="section-header">
-          <h3>币种</h3>
+          <h3>币种（订单展示）</h3>
         </div>
-        <p style="font-size:13px;color:#666;margin-bottom:12px">用于前台服务列表、详情、预约页及订单金额展示。价格为 0 时仅显示数字「0」，不显示币种符号。</p>
+        <p style="font-size:13px;color:#666;margin-bottom:12px">用于后台订单金额等展示。价格为 0 时仅显示数字「0」，不显示币种符号。</p>
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:8px">
           <label for="serviceCurrencySymbol" style="font-size:14px;color:var(--text)">币种符号</label>
           <input type="text" id="serviceCurrencySymbol" class="form-input" maxlength="8" placeholder="如 ¥ $ €" style="width:120px;padding:8px 12px" />
@@ -282,35 +282,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         </div>
       </div>
       <div class="dash-section">
-        <div class="section-header">
-          <h3>服务种类</h3>
-          <button class="refresh-btn" style="background:#059669" onclick="openServiceCategoryEditor()">+ 新增种类</button>
-        </div>
-        <p style="font-size:13px;color:#666;margin-bottom:12px">先配置种类，再在下方具体服务中为每个服务选择种类。</p>
-        <table class="order-table">
-          <thead><tr><th>ID</th><th>种类名称</th><th>key</th><th>背景色</th><th>透明度</th><th>排序</th><th>状态</th><th>操作</th></tr></thead>
-          <tbody id="serviceCategoryTableBody"></tbody>
-        </table>
-      </div>
-      <div class="dash-section" style="margin-top:24px">
-        <div class="section-header">
-          <h3>具体服务</h3>
-          <div style="display:flex;gap:8px">
-            <button class="refresh-btn" onclick="loadServices()">刷新</button>
-            <button class="refresh-btn" style="background:#059669" onclick="openServiceItemEditor()">+ 新增服务</button>
+        <div class="section-header"><h3>首页背景图</h3></div>
+        <p style="font-size:13px;color:#666;margin-bottom:12px">小程序与网页首页使用的背景图（第一行配置）。</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;margin-bottom:12px">
+          <img id="bkHomepagePreview" src="" alt="" style="max-width:280px;max-height:160px;border-radius:8px;border:1px solid #eee;display:none;object-fit:cover" />
+          <div>
+            <label class="refresh-btn" style="display:inline-block;cursor:pointer">上传背景图<input type="file" accept="image/*" style="display:none" onchange="uploadBookingHomeBg(this)" /></label>
           </div>
         </div>
-        <div class="order-filters" style="margin-bottom:12px;flex-wrap:wrap;align-items:center;gap:8px">
-          <span style="font-size:13px;color:#666">种类：</span>
-          <select class="form-input" id="serviceFilterCategoryId" style="width:140px;display:inline-block;padding:6px 10px" onchange="renderServicesTable()">
-            <option value="">全部</option>
-          </select>
-        </div>
-        <table class="order-table">
-          <thead><tr><th>排序</th><th>种类</th><th>名称</th><th>描述</th><th>图标</th><th>价格</th><th>原价</th><th>背景色</th><th>状态</th><th>操作</th></tr></thead>
-          <tbody id="serviceTableBody"></tbody>
-        </table>
-        <div class="order-empty" id="serviceEmpty" style="display:none">暂无具体服务</div>
+        <div class="form-group"><label>背景图 URL</label><input class="form-input" id="bkHomepageBg" readonly style="background:#f9f9f9" /></div>
+      </div>
+      <div class="dash-section">
+        <div class="section-header"><h3>预订说明页</h3></div>
+        <p style="font-size:13px;color:#666;margin-bottom:12px">顾客端「预订须知」页的标题与正文（第二块配置）。</p>
+        <div class="form-group"><label>标题</label><input class="form-input" id="bkNoticeTitle" placeholder="預定須知" /></div>
+        <div class="form-group"><label>正文</label><textarea class="form-input" id="bkNoticeBody" rows="12" style="resize:vertical;font-family:inherit" placeholder="支持多行文字"></textarea></div>
+      </div>
+      <div class="dash-section">
+        <div class="section-header"><h3>订金与可选规则</h3></div>
+        <div class="form-group"><label>每人订金（元）</label><input type="number" class="form-input" id="bkPerPerson" step="0.01" min="0" style="max-width:200px" /></div>
+        <div class="form-group"><label>用餐时段（英文逗号分隔，如 17:00,19:00,21:00）</label><input class="form-input" id="bkTimeSlots" placeholder="17:00,19:00,21:00" /></div>
+        <div class="form-group"><label>可选用餐人数（逗号分隔整数，如 2,3,4,6）</label><input class="form-input" id="bkGuestOptions" placeholder="2,3,4,6" /></div>
+        <button type="button" class="submit-btn" style="max-width:240px" onclick="saveBookingConfig()">保存预订配置</button>
       </div>
     </div>
 
@@ -1135,69 +1128,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       </div>
     </div>
 
-    <!-- 服务配置：种类编辑 -->
-    <div class="modal-overlay" id="serviceCategoryModal" style="display:none" onclick="if(event.target===this)closeServiceCategoryEditor()">
-      <div class="modal-content" style="max-width:400px">
-        <div class="modal-header">
-          <h3 id="serviceCategoryModalTitle">新增种类</h3>
-          <span class="modal-close" onclick="closeServiceCategoryEditor()">&times;</span>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="serviceCategoryEditId" />
-          <div class="form-group"><label>语种</label><select class="form-input" id="scLang" onchange="onScLangChange()"><option value="zh">中文</option><option value="en">English</option></select></div>
-          <div id="scLangZh"><div class="form-group"><label>种类名称 *</label><input class="form-input" id="serviceCategoryName" placeholder="如：维修" /></div></div>
-          <div id="scLangEn" style="display:none"><div class="form-group"><label>Category Name (EN)</label><input class="form-input" id="serviceCategoryNameEn" placeholder="e.g. Repair" /></div></div>
-          <div class="form-group"><label>key <span style="font-weight:normal;color:#999;font-size:12px">（可选，如 repair，用于前台分组）</span></label><input class="form-input" id="serviceCategoryKey" placeholder="如：repair" /></div>
-          <div class="form-group"><label>背景色 <span style="font-weight:normal;color:#999;font-size:12px">（可选，如 #2a2a2e）</span></label><input class="form-input" id="serviceCategoryBg" placeholder="#2a2a2e" /></div>
-          <div class="form-group"><label>透明度 <span style="font-weight:normal;color:#999;font-size:12px">（0-100，可选）</span></label><input type="number" class="form-input" id="serviceCategoryBgOpacity" placeholder="100" min="0" max="100" step="1" /></div>
-          <div class="form-group"><label>排序</label><input type="number" class="form-input" id="serviceCategorySort" value="0" /></div>
-          <div class="form-group"><label>状态</label><select class="form-input" id="serviceCategoryStatus"><option value="active">启用</option><option value="inactive">禁用</option></select></div>
-          <button class="submit-btn" onclick="saveServiceCategory()">保存</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 服务配置：具体服务编辑 -->
-    <div class="modal-overlay" id="serviceItemModal" style="display:none" onclick="if(event.target===this)closeServiceItemEditor()">
-      <div class="modal-content" style="max-width:480px">
-        <div class="modal-header">
-          <h3 id="serviceItemModalTitle">新增服务</h3>
-          <span class="modal-close" onclick="closeServiceItemEditor()">&times;</span>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="serviceItemEditId" />
-          <div class="form-group"><label>语种</label><select class="form-input" id="siLang" onchange="onSiLangChange()"><option value="zh">中文</option><option value="en">English</option></select></div>
-          <div id="siLangZh">
-            <div class="form-group"><label>种类 *</label><select class="form-input" id="serviceItemCategoryId"><option value="">请选择种类</option></select></div>
-            <div class="form-group"><label>名称 *</label><input class="form-input" id="serviceItemTitle" placeholder="如：设备维修" /></div>
-            <div class="form-group"><label>描述</label><input class="form-input" id="serviceItemDesc" placeholder="简短描述或详情页描述" /></div>
-            <div class="form-group"><label>图标图片 <span style="font-weight:normal;color:#999;font-size:12px">（上传则前台显示图片，否则显示下方 Vant 图标名）</span></label>
-              <div style="display:flex;gap:8px;align-items:center">
-                <input class="form-input" id="serviceItemIconUrl" placeholder="上传或填写图标图片 URL" style="flex:1" />
-                <label style="padding:8px 14px;background:var(--primary);color:#fff;border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap">上传图片<input type="file" accept="image/*" style="display:none" onchange="uploadServiceIconUrl(this)" /></label>
-              </div>
-              <img id="serviceItemIconPreview" style="width:44px;height:44px;object-fit:contain;border-radius:8px;border:1px solid #eee;margin-top:6px;display:none;background:#f5f5f5" />
-            </div>
-            <div class="form-group"><label>Vant 图标名 <span style="font-weight:normal;color:#999;font-size:12px">（无图标图片时使用）</span></label><input class="form-input" id="serviceItemIcon" placeholder="如 setting-o、location-o" /></div>
-            <div class="form-group"><label>价格</label><input class="form-input" type="number" id="serviceItemPrice" placeholder="99" step="0.01" /></div>
-            <div class="form-group"><label>原价（详情页展示）</label><input class="form-input" type="number" id="serviceItemOriginPrice" placeholder="159" step="0.01" /></div>
-          </div>
-          <div id="siLangEn" style="display:none">
-            <div class="form-group"><label>Title (EN)</label><input class="form-input" id="serviceItemTitleEn" placeholder="e.g. Device Repair" /></div>
-            <div class="form-group"><label>Description (EN)</label><input class="form-input" id="serviceItemDescEn" placeholder="English description" /></div>
-            <div class="form-group"><label>Price (EN)</label><input class="form-input" type="number" id="serviceItemPriceEn" placeholder="99" step="0.01" /></div>
-            <div class="form-group"><label>Original Price (EN)</label><input class="form-input" type="number" id="serviceItemOriginPriceEn" placeholder="159" step="0.01" /></div>
-            <div class="form-group"><label>Currency (EN)</label><input class="form-input" id="serviceItemCurrencyEn" placeholder="$ or €" /></div>
-          </div>
-          <div class="form-group"><label>背景色</label><input class="form-input" id="serviceItemBg" placeholder="#B91C1C" /></div>
-          <div class="form-group"><label>透明度 <span style="font-weight:normal;color:#999;font-size:12px">（0-100，100 为不透明，用于前台服务详情头部背景）</span></label><input class="form-input" type="number" id="serviceItemBgOpacity" placeholder="100" min="0" max="100" step="1" /></div>
-          <div class="form-group"><label>排序</label><input type="number" class="form-input" id="serviceItemSort" value="0" /></div>
-          <div class="form-group"><label>状态</label><select class="form-input" id="serviceItemStatus"><option value="active">启用</option><option value="inactive">禁用</option></select></div>
-          <button class="submit-btn" onclick="saveServiceItem()">保存</button>
-        </div>
-      </div>
-    </div>
-
     <!-- 商品库存：绑定二维码弹窗 -->
     <div class="modal-overlay" id="invQrModal" style="display:none" onclick="if(event.target===this)document.getElementById('invQrModal').style.display='none'">
       <div class="modal-content" style="max-width:420px;text-align:center">
@@ -1239,7 +1169,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         </div>
         <div id="orderTableWrap">
           <table class="order-table">
-            <thead><tr><th>订单号</th><th>用户ID</th><th>用户</th><th>服务</th><th>商品序列号</th><th>具体商品</th><th>金额</th><th>状态</th><th>联系人</th><th>地址</th><th>时间</th><th>操作</th></tr></thead>
+            <thead><tr><th>订单号</th><th>用户ID</th><th>用户</th><th>预订时间</th><th>预订人数</th><th>联系电话</th><th>金额</th><th>状态</th><th>下单时间</th><th>操作</th></tr></thead>
             <tbody id="orderTableBody"></tbody>
           </table>
           <div class="order-empty" id="orderEmpty" style="display:none">暂无订单数据</div>
@@ -1505,12 +1435,12 @@ async function api(path, options = {}) {
 let currentHCPage = 'homeConfig';
 let currentGroup = 'ToC';
 
-const tocPages = ['overview','orders','users','guides','serviceConfig','inventory','homeConfig','homeAnimConfig','pageThemeConfig','i18nConfig','messages'];
+const tocPages = ['overview','orders','users','guides','bookingConfig','inventory','homeConfig','homeAnimConfig','pageThemeConfig','i18nConfig','messages'];
 const outletPages = ['outletOverview','outletOrders','outletUsers','outletHomeConfig','outletHomeAnimConfig','outletMineConfig','outletMessages'];
 
 const tocNavItems = [
   {page:'overview',label:'概览'},{page:'orders',label:'订单管理'},{page:'users',label:'用户管理'},
-  {page:'guides',label:'商品配置'},{page:'serviceConfig',label:'服务配置'},{page:'inventory',label:'商品库存'},
+  {page:'guides',label:'商品配置'},{page:'bookingConfig',label:'预订配置'},{page:'inventory',label:'商品库存'},
   {page:'homeConfig',label:'首页配置'},{page:'homeAnimConfig',label:'首页动画配置'},
   {page:'pageThemeConfig',label:'页面基础配置'},{page:'i18nConfig',label:'语言翻译'},{page:'messages',label:'留言板'}
 ];
@@ -1522,7 +1452,7 @@ const outletNavItems = [
 
 function renderTopNav(items, activePage) {
   const nav = document.getElementById('dashTopNav');
-  const adminOnlyPages = ['guides','serviceConfig','inventory'];
+  const adminOnlyPages = ['guides','bookingConfig','inventory'];
   const isAdmin = currentUser && currentUser.role === 'admin';
   nav.innerHTML = items.map(it => {
     if (adminOnlyPages.includes(it.page) && !isAdmin) return '';
@@ -1560,7 +1490,7 @@ function switchPage(page) {
   if (page === 'orders') loadOrders();
   if (page === 'users') { userPage = 1; loadUsers(); }
   if (page === 'guides') { loadCategories(); loadGuides(); }
-  if (page === 'serviceConfig') { loadServiceCategories(); loadServices(); }
+  if (page === 'bookingConfig') { loadServiceCurrency(); loadBookingConfig(); }
   if (page === 'inventory') { invProductPage = 1; loadInventoryCategories(); loadInventoryProducts(); }
   if (page === 'homeConfig') { currentHCPage = 'homeConfig'; loadHomeConfig(); loadGuides(); }
   if (page === 'homeAnimConfig') { currentHCPage = 'homeAnimConfig'; loadHomeConfig(); }
@@ -1726,6 +1656,7 @@ function filterOrders(status) {
 }
 
 function fmtTime(t) { return t ? new Date(t).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'; }
+function fmtBookingAt(t) { return t ? new Date(t).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'; }
 
 const statusLabels = { pending: '待支付', paid: '已支付', processing: '进行中', completed: '已完成', cancelled: '已取消' };
 
@@ -1734,7 +1665,7 @@ async function loadOrders() {
   loadOrderStats();
   const tbody = document.getElementById('orderTableBody');
   const empty = document.getElementById('orderEmpty');
-  tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:30px;color:#999">加载中...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:#999">加载中...</td></tr>';
   try {
     const params = new URLSearchParams({ page: orderPage, pageSize: orderPageSize });
     if (orderFilter !== 'all') params.set('status', orderFilter);
@@ -1752,13 +1683,11 @@ async function loadOrders() {
           <td style="font-size:12px;color:var(--text-secondary)">${o.orderNo}</td>
           <td style="font-size:12px;font-weight:600">${o.userId}</td>
           <td>${o.user ? (o.user.nickname || o.user.username) : '-'}</td>
-          <td><strong>${o.serviceTitle}</strong></td>
-          <td style="font-size:12px;font-family:monospace;max-width:140px;word-break:break-all">${o.productSerial ? escapeHtml(String(o.productSerial)) : '-'}</td>
-          <td style="font-size:12px">${o.guide ? escapeHtml(o.guide.name) : (o.guideId ? 'ID:' + o.guideId : '-')}</td>
+          <td style="font-size:12px;white-space:nowrap">${fmtBookingAt(o.bookingAt)}</td>
+          <td style="text-align:center">${o.guestCount != null ? o.guestCount : '-'}</td>
+          <td style="font-size:12px;font-family:monospace">${o.contactPhone ? escapeHtml(String(o.contactPhone)) : '-'}</td>
           <td style="color:var(--primary);font-weight:600">${formatAdminPrice(o.price)}</td>
           <td><span class="status-badge ${o.status}">${statusLabels[o.status] || o.status}</span></td>
-          <td style="font-size:12px">${o.contactName || '-'}<br>${o.contactPhone || ''}</td>
-          <td style="font-size:12px;max-width:200px;word-break:break-all">${o.address || '-'}</td>
           <td style="font-size:12px">${fmtTime(o.createdAt)}</td>
           <td>
             <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)" ${o.status === 'cancelled' ? 'disabled' : ''}>
@@ -1782,7 +1711,7 @@ async function loadOrders() {
         </span>
         <button class="page-btn" onclick="orderPage++;loadOrders()" ${page >= totalPages ? 'disabled' : ''}>下一页</button>` : `<span class="page-info">共 ${total} 条</span>`;
     }
-  } catch { tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:30px;color:#B91C1C">加载失败，请检查权限</td></tr>'; }
+  } catch { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:#B91C1C">加载失败，请检查权限</td></tr>'; }
 }
 
 async function updateOrderStatus(id, status) {
@@ -2256,9 +2185,7 @@ async function uploadCategoryThumbnailEn(input) {
   input.value = '';
 }
 
-// ---------- 服务配置 ----------
-let allServiceCategories = [];
-let allServices = [];
+// ---------- 币种与预订配置 ----------
 let adminCurrencySymbol = '¥';
 let serviceCurrencyConfigId = null;
 
@@ -2303,210 +2230,71 @@ async function saveServiceCurrency() {
   } catch (_) { alert('保存失败'); }
 }
 
-async function loadServiceCategories() {
-  await loadServiceCurrency();
-  const tbody = document.getElementById('serviceCategoryTableBody');
-  if (!tbody) return;
+async function loadBookingConfig() {
   try {
-    const res = await api('/service-categories');
-    if (res.code === 0) {
-      allServiceCategories = res.data || [];
-      tbody.innerHTML = allServiceCategories.map(c => `<tr>
-        <td>${c.id}</td>
-        <td><strong>${c.name}</strong></td>
-        <td style="font-size:12px;color:#666;font-family:monospace">${c.key || '-'}</td>
-        <td><span style="display:inline-block;width:20px;height:20px;border-radius:4px;border:1px solid #eee;background:${c.bg||'transparent'}"></span> <span style="font-size:12px;color:#666">${c.bg||'-'}</span></td>
-        <td style="font-size:12px;color:#666">${c.bgOpacity != null ? c.bgOpacity : '-'}</td>
-        <td>${c.sortOrder}</td>
-        <td><span style="padding:2px 8px;border-radius:4px;font-size:12px;${c.status==='active'?'background:#D1FAE5;color:#059669':'background:#F3F4F6;color:#999'}">${c.status==='active'?'启用':'禁用'}</span></td>
-        <td>
-          <button class="detail-btn" onclick="openServiceCategoryEditor(${c.id})">编辑</button>
-          <button class="history-btn" style="color:#B91C1C;border-color:#FCA5A5" onclick="deleteServiceCategory(${c.id})">删除</button>
-        </td>
-      </tr>`).join('');
-      if (!allServiceCategories.length) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#999">暂无种类，请先新增种类</td></tr>';
+    const res = await api('/booking-config');
+    if (res.code !== 0) return;
+    const d = res.data || {};
+    const urlEl = document.getElementById('bkHomepageBg');
+    const prev = document.getElementById('bkHomepagePreview');
+    if (urlEl) urlEl.value = d.homepageBgUrl || '';
+    if (prev) {
+      if (d.homepageBgUrl) { prev.src = d.homepageBgUrl; prev.style.display = 'block'; }
+      else { prev.style.display = 'none'; prev.removeAttribute('src'); }
     }
-  } catch { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#B91C1C">加载失败</td></tr>'; }
+    const nt = document.getElementById('bkNoticeTitle');
+    const nb = document.getElementById('bkNoticeBody');
+    if (nt) nt.value = d.noticeTitle || '';
+    if (nb) nb.value = d.noticeBody || '';
+    const pp = document.getElementById('bkPerPerson');
+    if (pp) pp.value = d.perPersonDeposit != null ? d.perPersonDeposit : 50;
+    const ts = document.getElementById('bkTimeSlots');
+    if (ts) ts.value = Array.isArray(d.timeSlots) ? d.timeSlots.join(',') : '';
+    const go = document.getElementById('bkGuestOptions');
+    if (go) go.value = Array.isArray(d.guestOptions) ? d.guestOptions.join(',') : '';
+  } catch (_) {}
 }
 
-async function loadServices() {
-  const tbody = document.getElementById('serviceTableBody');
-  const empty = document.getElementById('serviceEmpty');
-  if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:#999">加载中...</td></tr>';
-  try {
-    const res = await api('/services/admin/list');
-    if (res.code === 0) {
-      allServices = res.data || [];
-      var sel = document.getElementById('serviceFilterCategoryId');
-      if (sel && sel.options.length <= 1) {
-        sel.innerHTML = '<option value="">全部</option>' + (allServiceCategories || []).map(c => '<option value="'+c.id+'">'+escapeHtml(c.name)+'</option>').join('');
-      }
-      renderServicesTable();
-    }
-  } catch { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:#B91C1C">加载失败</td></tr>'; document.getElementById('serviceEmpty').style.display = 'none'; }
-}
-
-function renderServicesTable() {
-  const tbody = document.getElementById('serviceTableBody');
-  const empty = document.getElementById('serviceEmpty');
-  if (!tbody) return;
-  var filterId = document.getElementById('serviceFilterCategoryId');
-  var categoryId = filterId ? filterId.value : '';
-  var list = !categoryId ? allServices : allServices.filter(s => String(s.categoryId) === String(categoryId));
-  if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  tbody.innerHTML = list.map(s => `<tr>
-    <td>${s.sortOrder}</td>
-    <td style="font-size:12px;color:#666">${s.serviceCategory ? s.serviceCategory.name : '-'}</td>
-    <td><strong>${s.title}</strong></td>
-    <td style="font-size:12px;color:#666;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(s.description||'')}">${(s.description||'').slice(0,24)}${(s.description||'').length>24?'…':''}</td>
-    <td>${s.iconUrl ? '<img src="'+escapeHtml(s.iconUrl)+'" style="width:32px;height:32px;object-fit:contain;border-radius:6px;vertical-align:middle" />' : (s.icon ? s.icon : '-')}</td>
-    <td>${formatAdminPrice(s.price)}</td>
-    <td style="font-size:12px;color:#999">${s.originPrice != null ? formatAdminPrice(s.originPrice) : '-'}</td>
-    <td><span style="display:inline-block;width:20px;height:20px;border-radius:4px;border:1px solid #eee;background:${s.bg||'#B91C1C'}"></span></td>
-    <td><span style="padding:2px 8px;border-radius:4px;font-size:12px;${s.status==='active'?'background:#D1FAE5;color:#059669':'background:#F3F4F6;color:#999'}">${s.status==='active'?'启用':'禁用'}</span></td>
-    <td>
-      <button class="detail-btn" onclick="editServiceItem(${s.id})">编辑</button>
-      <button class="history-btn" style="color:#B91C1C;border-color:#FCA5A5" onclick="deleteServiceItem(${s.id})">删除</button>
-    </td>
-  </tr>`).join('');
-}
-
-function openServiceCategoryEditor(id) {
-  const c = id ? allServiceCategories.find(x => x.id === id) : null;
-  document.getElementById('serviceCategoryEditId').value = c ? c.id : '';
-  document.getElementById('serviceCategoryModalTitle').textContent = c ? '编辑种类' : '新增种类';
-  document.getElementById('serviceCategoryName').value = c ? c.name : '';
-  document.getElementById('serviceCategoryNameEn').value = c ? (c.nameEn || '') : '';
-  document.getElementById('serviceCategoryKey').value = c ? (c.key || '') : '';
-  document.getElementById('serviceCategoryBg').value = c ? (c.bg || '') : '';
-  document.getElementById('serviceCategoryBgOpacity').value = c && c.bgOpacity != null ? c.bgOpacity : '';
-  document.getElementById('serviceCategorySort').value = c ? c.sortOrder : 0;
-  document.getElementById('serviceCategoryStatus').value = c ? c.status : 'active';
-  document.getElementById('scLang').value = 'zh';
-  onScLangChange();
-  document.getElementById('serviceCategoryModal').style.display = 'flex';
-}
-function onScLangChange() {
-  var lang = document.getElementById('scLang').value;
-  document.getElementById('scLangZh').style.display = lang === 'zh' ? '' : 'none';
-  document.getElementById('scLangEn').style.display = lang === 'en' ? '' : 'none';
-}
-
-function closeServiceCategoryEditor() { document.getElementById('serviceCategoryModal').style.display = 'none'; }
-
-async function saveServiceCategory() {
-  const id = document.getElementById('serviceCategoryEditId').value;
-  const name = document.getElementById('serviceCategoryName').value.trim();
-  if (!name) { alert('请填写种类名称'); return; }
-  const bg = document.getElementById('serviceCategoryBg').value.trim();
-  const bgOpacity = document.getElementById('serviceCategoryBgOpacity').value;
+async function saveBookingConfig() {
+  const slotsRaw = (document.getElementById('bkTimeSlots') && document.getElementById('bkTimeSlots').value) || '';
+  const slots = slotsRaw.split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
+  const guestsRaw = (document.getElementById('bkGuestOptions') && document.getElementById('bkGuestOptions').value) || '';
+  const guests = guestsRaw.split(/[,，]/).map(function (s) { return parseInt(s.trim(), 10); }).filter(function (n) { return !isNaN(n) && n > 0; });
   const body = {
-    name,
-    nameEn: (document.getElementById('serviceCategoryNameEn').value || '').trim() || undefined,
-    key: document.getElementById('serviceCategoryKey').value.trim() || undefined,
-    bg: bg || undefined,
-    bgOpacity: (bgOpacity != null && String(bgOpacity).trim() !== '') ? bgOpacity : null,
-    sortOrder: parseInt(document.getElementById('serviceCategorySort').value, 10) || 0,
-    status: document.getElementById('serviceCategoryStatus').value,
+    noticeTitle: (document.getElementById('bkNoticeTitle') && document.getElementById('bkNoticeTitle').value.trim()) || '',
+    noticeBody: (document.getElementById('bkNoticeBody') && document.getElementById('bkNoticeBody').value) || '',
+    perPersonDeposit: parseFloat(document.getElementById('bkPerPerson') && document.getElementById('bkPerPerson').value) || 0,
+    timeSlots: slots,
+    guestOptions: guests,
+    homepageBgUrl: (document.getElementById('bkHomepageBg') && document.getElementById('bkHomepageBg').value.trim()) || '',
   };
   try {
-    const res = id
-      ? await api('/service-categories/' + id, { method: 'PUT', body })
-      : await api('/service-categories', { method: 'POST', body });
-    if (res.code === 0) { closeServiceCategoryEditor(); loadServiceCategories(); loadServices(); }
+    const res = await api('/booking-config', { method: 'PUT', body: body });
+    if (res.code === 0) { alert('已保存'); loadBookingConfig(); }
     else alert(res.message || '保存失败');
-  } catch (e) { alert('保存失败'); }
+  } catch (_) { alert('保存失败'); }
 }
 
-async function deleteServiceCategory(id) {
-  if (!confirm('确定删除该种类？其下无具体服务时才能删除。')) return;
-  try {
-    const res = await api('/service-categories/' + id, { method: 'DELETE' });
-    if (res.code === 0) { loadServiceCategories(); loadServices(); }
-    else alert(res.message || '删除失败');
-  } catch { alert('删除失败'); }
-}
-
-function openServiceItemEditor(id) {
-  const sel = document.getElementById('serviceItemCategoryId');
-  sel.innerHTML = '<option value="">请选择种类</option>' + (allServiceCategories || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  const s = id ? allServices.find(x => x.id === id) : null;
-  document.getElementById('serviceItemEditId').value = s ? s.id : '';
-  document.getElementById('serviceItemModalTitle').textContent = s ? '编辑服务' : '新增服务';
-  document.getElementById('serviceItemCategoryId').value = s ? (s.categoryId || '') : '';
-  document.getElementById('serviceItemTitle').value = s ? s.title : '';
-  document.getElementById('serviceItemDesc').value = s ? (s.description || '') : '';
-  document.getElementById('serviceItemIconUrl').value = s ? (s.iconUrl || '') : '';
-  var iconPreview = document.getElementById('serviceItemIconPreview');
-  if (iconPreview) { iconPreview.src = s && s.iconUrl ? s.iconUrl : ''; iconPreview.style.display = s && s.iconUrl ? 'block' : 'none'; }
-  document.getElementById('serviceItemIcon').value = s ? (s.icon || '') : '';
-  document.getElementById('serviceItemPrice').value = s != null && s.price != null ? s.price : '';
-  document.getElementById('serviceItemOriginPrice').value = s != null && s.originPrice != null ? s.originPrice : '';
-  document.getElementById('serviceItemTitleEn').value = s ? (s.titleEn || '') : '';
-  document.getElementById('serviceItemDescEn').value = s ? (s.descriptionEn || '') : '';
-  document.getElementById('serviceItemPriceEn').value = s != null && s.priceEn != null ? s.priceEn : '';
-  document.getElementById('serviceItemOriginPriceEn').value = s != null && s.originPriceEn != null ? s.originPriceEn : '';
-  document.getElementById('serviceItemCurrencyEn').value = s ? (s.currencyEn || '') : '';
-  document.getElementById('serviceItemBg').value = s ? (s.bg || '#B91C1C') : '#B91C1C';
-  document.getElementById('serviceItemBgOpacity').value = s != null && s.bgOpacity != null ? s.bgOpacity : '';
-  document.getElementById('serviceItemSort').value = s ? s.sortOrder : 0;
-  document.getElementById('serviceItemStatus').value = s ? s.status : 'active';
-  document.getElementById('siLang').value = 'zh';
-  onSiLangChange();
-  document.getElementById('serviceItemModal').style.display = 'flex';
-}
-function onSiLangChange() {
-  var lang = document.getElementById('siLang').value;
-  document.getElementById('siLangZh').style.display = lang === 'zh' ? '' : 'none';
-  document.getElementById('siLangEn').style.display = lang === 'en' ? '' : 'none';
-}
-
-function editServiceItem(id) { openServiceItemEditor(id); }
-
-function closeServiceItemEditor() { document.getElementById('serviceItemModal').style.display = 'none'; }
-
-async function saveServiceItem() {
-  const id = document.getElementById('serviceItemEditId').value;
-  const title = document.getElementById('serviceItemTitle').value.trim();
-  const categoryId = document.getElementById('serviceItemCategoryId').value;
-  if (!title) { alert('请填写服务名称'); return; }
-  if (!categoryId) { alert('请选择种类'); return; }
-  const body = {
-    categoryId: parseInt(categoryId, 10),
-    title,
-    description: document.getElementById('serviceItemDesc').value.trim() || undefined,
-    iconUrl: document.getElementById('serviceItemIconUrl').value.trim() || undefined,
-    icon: document.getElementById('serviceItemIcon').value.trim() || undefined,
-    price: parseFloat(document.getElementById('serviceItemPrice').value) || 0,
-    originPrice: document.getElementById('serviceItemOriginPrice').value ? parseFloat(document.getElementById('serviceItemOriginPrice').value) : undefined,
-    titleEn: (document.getElementById('serviceItemTitleEn').value || '').trim(),
-    descriptionEn: (document.getElementById('serviceItemDescEn').value || '').trim(),
-    priceEn: document.getElementById('serviceItemPriceEn').value ? parseFloat(document.getElementById('serviceItemPriceEn').value) : undefined,
-    originPriceEn: document.getElementById('serviceItemOriginPriceEn').value ? parseFloat(document.getElementById('serviceItemOriginPriceEn').value) : undefined,
-    currencyEn: (document.getElementById('serviceItemCurrencyEn').value || '').trim(),
-    bg: document.getElementById('serviceItemBg').value.trim() || '#B91C1C',
-    bgOpacity: document.getElementById('serviceItemBgOpacity').value !== '' ? parseFloat(document.getElementById('serviceItemBgOpacity').value) : undefined,
-    sortOrder: parseInt(document.getElementById('serviceItemSort').value, 10) || 0,
-    status: document.getElementById('serviceItemStatus').value,
-  };
-  try {
-    const res = id
-      ? await api('/services/' + id, { method: 'PUT', body })
-      : await api('/services', { method: 'POST', body });
-    if (res.code === 0) { closeServiceItemEditor(); loadServices(); }
-    else alert(res.message || '保存失败');
-  } catch (e) { alert('保存失败'); }
-}
-
-async function deleteServiceItem(id) {
-  if (!confirm('确定删除该服务？')) return;
-  try {
-    const res = await api('/services/' + id, { method: 'DELETE' });
-    if (res.code === 0) loadServices();
-    else alert(res.message || '删除失败');
-  } catch { alert('删除失败'); }
+async function uploadBookingHomeBg(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  if (!f.type.startsWith('image/')) { alert('请选择图片文件'); input.value = ''; return; }
+  const fd = new FormData();
+  fd.append('file', f);
+  await runWithUploadOverlay(f.name, async function () {
+    try {
+      const res = await fetch(API + '/booking-config/upload', { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd });
+      const j = await res.json();
+      if (j.code === 0 && j.data) {
+        const u = j.data.homepageBgUrl || j.data.url || '';
+        const urlEl = document.getElementById('bkHomepageBg');
+        const prev = document.getElementById('bkHomepagePreview');
+        if (urlEl) urlEl.value = u;
+        if (prev && u) { prev.src = u; prev.style.display = 'block'; }
+      } else alert((j && j.message) || '上传失败');
+    } catch (_) { alert('上传失败'); }
+  });
+  input.value = '';
 }
 
 let guideMediaItems = [];
@@ -2644,24 +2432,6 @@ async function uploadGuideFile(input, targetId) {
         if (targetId === 'gIconUrl') { const p = document.getElementById('gIconPreview'); if(p){p.src=res.data.url;p.style.display='block';} if(res.data.thumbUrl){ const t=document.getElementById('gIconUrlThumb'); if(t)t.value=res.data.thumbUrl; } }
       } else { el.value = ''; alert(res.message||'上传失败'); }
     } catch { el.value = ''; alert('上传失败'); }
-  });
-  input.value = '';
-}
-
-async function uploadServiceIconUrl(input) {
-  if (!input.files || !input.files[0]) return;
-  var file = input.files[0];
-  if (file.size > 10*1024*1024) { alert('文件不能超过10MB'); return; }
-  var el = document.getElementById('serviceItemIconUrl');
-  var preview = document.getElementById('serviceItemIconPreview');
-  await runWithUploadOverlay(file.name, async () => {
-    try {
-      var res = await doUpload(file);
-      if (res.code === 0 && res.data && res.data.url) {
-        el.value = res.data.url;
-        if (preview) { preview.src = res.data.url; preview.style.display = 'block'; }
-      } else { el.value = ''; if (preview) preview.style.display = 'none'; alert(res.message || '上传失败'); }
-    } catch { el.value = ''; if (preview) preview.style.display = 'none'; alert('上传失败'); }
   });
   input.value = '';
 }

@@ -1,0 +1,146 @@
+.page {
+  min-height: 100vh;
+  background: #fff9e3;
+  padding: 24rpx 24rpx 200rpx;
+  box-sizing: border-box;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #a32626;
+  margin-bottom: 16rpx;
+}
+
+.section-title.sub {
+  margin-top: 32rpx;
+  font-size: 30rpx;
+}
+
+.month-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40rpx;
+  margin-bottom: 16rpx;
+}
+
+.month-label {
+  font-size: 32rpx;
+  color: #a32626;
+  font-weight: 700;
+}
+
+.month-nav {
+  font-size: 40rpx;
+  color: #a32626;
+  padding: 8rpx 24rpx;
+}
+
+.week-row {
+  display: flex;
+  margin-bottom: 8rpx;
+}
+
+.week-cell {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+  color: #a32626;
+}
+
+.cal-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cal-cell {
+  width: 14.28%;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #a32626;
+  box-sizing: border-box;
+}
+
+.cal-cell.muted {
+  color: #d8c8c8;
+}
+
+.cal-cell.picked {
+  background: #a32626;
+  color: #fff;
+  border-radius: 12rpx;
+}
+
+.slot-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.slot-chip,
+.guest-chip {
+  padding: 16rpx 32rpx;
+  border: 2rpx solid #a32626;
+  color: #a32626;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.slot-chip.on,
+.guest-chip.on {
+  background: #a32626;
+  color: #fff;
+}
+
+.footer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff9e3;
+  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid #e8dcc8;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.price-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.currency {
+  font-size: 28rpx;
+  color: #a32626;
+}
+
+.price-num {
+  font-size: 48rpx;
+  font-weight: 800;
+  color: #a32626;
+}
+
+.price-label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.phone-inp {
+  border: 1rpx solid #d4a59a;
+  border-radius: 8rpx;
+  padding: 16rpx;
+  margin-bottom: 12rpx;
+  font-size: 28rpx;
+}
+
+.btn-confirm {
+  background: #a32626;
+  color: #fff;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+}

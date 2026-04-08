@@ -1,4 +1,4 @@
-﻿package db
+package db
 
 import (
 	"fmt"
@@ -34,6 +34,7 @@ func AutoMigrate() error {
 	return DB.AutoMigrate(
 		&models.User{},
 		&models.OutletUser{},
+		&models.BookingConfig{},
 		&models.Order{},
 		&models.OrderLog{},
 		&models.OutletOrder{},

@@ -1,24 +1,24 @@
-﻿package handlers
+package handlers
 
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"math"
 	"math/rand"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"xykitchen/backend/internal/config"
 	"xykitchen/backend/internal/db"
 	"xykitchen/backend/internal/models"
 	"xykitchen/backend/internal/resp"
-	"xykitchen/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+var phone11 = regexp.MustCompile(`^1[3-9]\d{9}$`)
 
 var orderStatusMap = map[string]struct {
 	Text   string `json:"text"`
@@ -35,8 +35,22 @@ var orderStatusMap = map[string]struct {
 func genOrderNo() string {
 	now := time.Now()
 	r := rand.Intn(10000)
-	return fmt.Sprintf("VN%d%02d%02d%02d%02d%02d%04d",
+	return fmt.Sprintf("XK%d%02d%02d%02d%02d%02d%04d",
 		now.Year(), int(now.Month()), now.Day(), now.Hour(), now.Minute(), now.Second(), r)
+}
+
+func parseTimeSlot(slot string) (hour, min int, ok bool) {
+	slot = strings.TrimSpace(slot)
+	parts := strings.Split(slot, ":")
+	if len(parts) != 2 {
+		return 0, 0, false
+	}
+	h, err1 := strconv.Atoi(parts[0])
+	m, err2 := strconv.Atoi(parts[1])
+	if err1 != nil || err2 != nil || h < 0 || h > 23 || m < 0 || m > 59 {
+		return 0, 0, false
+	}
+	return h, m, true
 }
 
 func orderCreate(c *gin.Context) {
@@ -45,57 +59,62 @@ func orderCreate(c *gin.Context) {
 		return
 	}
 	var body struct {
-		ServiceID       *int     `json:"serviceId"`
-		ServiceTitle    string   `json:"serviceTitle"`
-		ServiceTitleEn  string   `json:"serviceTitleEn"`
-		ServiceIcon     string   `json:"serviceIcon"`
-		Price           float64  `json:"price"`
-		ContactName     string   `json:"contactName"`
-		ContactPhone    string   `json:"contactPhone"`
-		Address         string   `json:"address"`
-		AppointmentTime *string  `json:"appointmentTime"`
-		Remark          string   `json:"remark"`
-		ProductSerial   string   `json:"productSerial"`
-		GuideID         *float64 `json:"guideId"`
+		BookingDate  string  `json:"bookingDate"`
+		TimeSlot     string  `json:"timeSlot"`
+		GuestCount   int     `json:"guestCount"`
+		ContactPhone string  `json:"contactPhone"`
+		Price        float64 `json:"price"`
 	}
-	if err := c.ShouldBindJSON(&body); err != nil || strings.TrimSpace(body.ServiceTitle) == "" || body.Price == 0 {
-		resp.Err(c, 400, 400, "服务信息不完整")
+	if err := c.ShouldBindJSON(&body); err != nil {
+		resp.Err(c, 400, 400, "参数错误")
 		return
 	}
-	serial := strings.TrimSpace(body.ProductSerial)
-	if len(serial) > 128 {
-		serial = serial[:128]
+	phone := strings.TrimSpace(body.ContactPhone)
+	if !phone11.MatchString(phone) {
+		resp.Err(c, 400, 400, "请输入11位大陆手机号")
+		return
 	}
-	var gid *int
-	if body.GuideID != nil {
-		g := int(*body.GuideID)
-		if g > 0 {
-			gid = &g
-		}
+	if body.GuestCount < 1 || body.GuestCount > 50 {
+		resp.Err(c, 400, 400, "用餐人数无效")
+		return
 	}
-	var appt *time.Time
-	if body.AppointmentTime != nil && *body.AppointmentTime != "" {
-		t, err := time.Parse(time.RFC3339, *body.AppointmentTime)
-		if err == nil {
-			appt = &t
-		}
+	var bcfg models.BookingConfig
+	_ = db.DB.Order("id ASC").First(&bcfg).Error
+	per := bcfg.PerPersonDeposit
+	if per <= 0 {
+		per = 50
 	}
+	expect := per * float64(body.GuestCount)
+	if math.Abs(expect-body.Price) > 0.02 {
+		resp.Err(c, 400, 400, "金额与订金规则不符，请刷新后重试")
+		return
+	}
+	ds := strings.TrimSpace(body.BookingDate)
+	d, err := time.ParseInLocation("2006-01-02", ds, time.Local)
+	if err != nil {
+		resp.Err(c, 400, 400, "预订日期无效")
+		return
+	}
+	h, mi, tok := parseTimeSlot(body.TimeSlot)
+	if !tok {
+		resp.Err(c, 400, 400, "用餐时段无效")
+		return
+	}
+	bk := time.Date(d.Year(), d.Month(), d.Day(), h, mi, 0, 0, time.Local)
+	if !bk.After(time.Now().Add(-1 * time.Minute)) {
+		resp.Err(c, 400, 400, "预订时间需晚于当前时间")
+		return
+	}
+	bkp := bk
 	o := models.Order{
-		OrderNo:         genOrderNo(),
-		UserID:          u.ID,
-		ServiceID:       body.ServiceID,
-		ServiceTitle:    body.ServiceTitle,
-		ServiceTitleEn:  body.ServiceTitleEn,
-		ServiceIcon:     firstNonEmptyStr(body.ServiceIcon, "setting-o"),
-		Price:           body.Price,
-		ContactName:     body.ContactName,
-		ContactPhone:    body.ContactPhone,
-		Address:         body.Address,
-		AppointmentTime: appt,
-		Remark:          body.Remark,
-		ProductSerial:   serial,
-		GuideID:         gid,
-		Status:          "pending",
+		OrderNo:      genOrderNo(),
+		UserID:       u.ID,
+		BookingAt:    &bkp,
+		GuestCount:   body.GuestCount,
+		ContactPhone: phone,
+		Price:        expect,
+		Status:       "pending",
+		ServiceTitle: "门店预订",
 	}
 	if err := db.DB.Create(&o).Error; err != nil {
 		resp.Err(c, 500, 500, "创建订单失败")
@@ -138,69 +157,6 @@ func orderMyOrders(c *gin.Context) {
 		list = append(list, h)
 	}
 	resp.OK(c, gin.H{"list": list, "total": total, "page": page, "pageSize": pageSize})
-}
-
-func orderPayWechatPrepay(c *gin.Context, cfg *config.Config) {
-	u, ok := ctxUser(c)
-	if !ok {
-		return
-	}
-	id, ok := parseID(c, "id")
-	if !ok {
-		resp.Err(c, 400, 400, "无效订单")
-		return
-	}
-	if !services.IsWechatPayConfigured(cfg) {
-		resp.Err(c, 503, 503, "服务器未配置微信支付")
-		return
-	}
-	var o models.Order
-	if err := db.DB.First(&o, id).Error; err != nil {
-		resp.Err(c, 404, 404, "订单不存在")
-		return
-	}
-	if o.UserID != u.ID {
-		resp.Err(c, 403, 403, "无权操作")
-		return
-	}
-	if o.Status != "pending" {
-		resp.Err(c, 400, 400, "仅待支付订单可发起支付")
-		return
-	}
-	var user models.User
-	if err := db.DB.First(&user, u.ID).Error; err != nil || user.Openid == nil || *user.Openid == "" {
-		resp.Err(c, 400, 400, "请使用微信登录后再支付")
-		return
-	}
-	totalFen := int(math.Round(o.Price * 100))
-	if totalFen < 1 {
-		resp.Err(c, 400, 400, "订单金额无效")
-		return
-	}
-	desc := o.ServiceTitle
-	if len([]rune(desc)) > 120 {
-		desc = string([]rune(desc)[:120])
-	}
-	prepay, err := services.JsapiPrepay(cfg, o.OrderNo, desc, totalFen, *user.Openid)
-	if err != nil {
-		resp.Err(c, 500, 500, fmt.Sprint(err))
-		return
-	}
-	prepayID, _ := prepay["prepay_id"].(string)
-	if prepayID == "" {
-		msg := "预下单失败"
-		if m, ok := prepay["message"].(string); ok {
-			msg = m
-		}
-		resp.Err(c, 500, 500, msg)
-		return
-	}
-	params, err := services.BuildMiniProgramPayParams(cfg, prepayID)
-	if err != nil {
-		resp.Err(c, 500, 500, err.Error())
-		return
-	}
-	resp.OK(c, params)
 }
 
 func orderDetail(c *gin.Context) {
@@ -288,8 +244,6 @@ func orderAdminList(c *gin.Context) {
 	fq := qb.Session(&gorm.Session{})
 	fq.Preload("User", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id", "username", "email", "nickname", "phone")
-	}).Preload("Guide", func(db *gorm.DB) *gorm.DB {
-		return db.Select("id", "name")
 	}).Order("createdAt DESC").Limit(pageSize).Offset((page - 1) * pageSize).Find(&rows)
 	list := make([]gin.H, 0, len(rows))
 	for _, o := range rows {
@@ -451,59 +405,4 @@ func orderAdminLogs(c *gin.Context) {
 	var o models.Order
 	db.DB.Select("id", "orderNo", "adminRemark").First(&o, id)
 	resp.OK(c, gin.H{"logs": logs, "adminRemark": o.AdminRemark})
-}
-
-// WechatPayNotify 微信支付回调（需在 main 中注册于 raw body 解析之后）
-func WechatPayNotify(c *gin.Context) {
-	var body map[string]interface{}
-	raw, err := io.ReadAll(c.Request.Body)
-	if err != nil {
-		c.JSON(400, gin.H{"code": "FAIL", "message": "invalid body"})
-		return
-	}
-	if err := json.Unmarshal(raw, &body); err != nil {
-		c.JSON(400, gin.H{"code": "FAIL", "message": "invalid body"})
-		return
-	}
-	res, _ := body["resource"].(map[string]interface{})
-	if res == nil {
-		c.JSON(200, gin.H{"code": "SUCCESS", "message": "成功"})
-		return
-	}
-	data, err := services.DecryptNotifyResource(res)
-	if err != nil {
-		c.JSON(500, gin.H{"code": "FAIL", "message": "decrypt"})
-		return
-	}
-	outTradeNo, _ := data["out_trade_no"].(string)
-	tradeState, _ := data["trade_state"].(string)
-	var amountFen float64
-	if amt, ok := data["amount"].(map[string]interface{}); ok {
-		if pt, ok := amt["payer_total"].(float64); ok {
-			amountFen = pt
-		} else if tt, ok := amt["total"].(float64); ok {
-			amountFen = tt
-		}
-	}
-	if tradeState != "SUCCESS" {
-		c.JSON(200, gin.H{"code": "SUCCESS", "message": "成功"})
-		return
-	}
-	var o models.Order
-	if err := db.DB.Where("orderNo = ?", outTradeNo).First(&o).Error; err != nil {
-		c.JSON(200, gin.H{"code": "SUCCESS", "message": "成功"})
-		return
-	}
-	if o.Status != "pending" {
-		c.JSON(200, gin.H{"code": "SUCCESS", "message": "成功"})
-		return
-	}
-	expect := int(math.Round(o.Price * 100))
-	if int(amountFen) != expect {
-		c.JSON(500, gin.H{"code": "FAIL", "message": "amount"})
-		return
-	}
-	o.Status = "processing"
-	db.DB.Save(&o)
-	c.JSON(200, gin.H{"code": "SUCCESS", "message": "成功"})
 }

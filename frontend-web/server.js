@@ -15,6 +15,5 @@ app.get('/', (_req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  // eslint-disable-next-line no-console
   console.log(`[xyKitchen web] http://0.0.0.0:${PORT}`);
 });

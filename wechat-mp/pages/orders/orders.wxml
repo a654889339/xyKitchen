@@ -1,0 +1,11 @@
+<view class="page">
+  <view wx:if="{{empty}}" class="empty">暂无订单</view>
+  <view wx:for="{{list}}" wx:key="id" class="card">
+    <view class="row"><text class="muted">订单号</text><text>{{item.orderNo}}</text></view>
+    <view class="row"><text class="muted">预订时间</text><text>{{item.bookingAtText}}</text></view>
+    <view class="row"><text class="muted">人数</text><text>{{item.guestCount}}</text></view>
+    <view class="row"><text class="muted">手机</text><text>{{item.contactPhone}}</text></view>
+    <view class="row"><text class="muted">金额</text><text class="price">¥{{item.priceText}}</text></view>
+    <view class="row"><text class="muted">状态</text><text>{{item.statusText || item.status}}</text></view>
+  </view>
+</view>

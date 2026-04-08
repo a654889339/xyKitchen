@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="section-title">預定日期</view>
+  <view class="month-row">
+    <text class="month-nav" bindtap="onPrevMonth">‹</text>
+    <text class="month-label">{{monthLabel}}</text>
+    <text class="month-nav" bindtap="onNextMonth">›</text>
+  </view>
+  <view class="week-row">
+    <text wx:for="{{weekdays}}" wx:key="*this" class="week-cell">{{item}}</text>
+  </view>
+  <view class="cal-grid">
+    <view
+      wx:for="{{cells}}"
+      wx:key="index"
+      class="cal-cell {{item.muted ? 'muted' : ''}} {{item.day && item.day === selectedDay ? 'picked' : ''}}"
+      data-day="{{item.day}}"
+      data-avail="{{item.available}}"
+      bindtap="onPickDay"
+    >
+      <text wx:if="{{item.day}}">{{item.day}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{selectedDate}}" class="section-title sub">可用餐時間</view>
+  <view wx:if="{{selectedDate}}" class="slot-row">
+    <view
+      wx:for="{{timeSlots}}"
+      wx:key="*this"
+      class="slot-chip {{selectedSlot === item ? 'on' : ''}}"
+      data-slot="{{item}}"
+      bindtap="onPickSlot"
+    >{{item}}</view>
+  </view>
+
+  <view wx:if="{{selectedSlot}}" class="section-title sub">用餐人数</view>
+  <view wx:if="{{selectedSlot}}" class="slot-row">
+    <view
+      wx:for="{{guestOptions}}"
+      wx:key="*this"
+      class="guest-chip {{guestCount === item ? 'on' : ''}}"
+      data-n="{{item}}"
+      bindtap="onPickGuest"
+    >{{item}}</view>
+  </view>
+
+  <view wx:if="{{guestCount}}" class="footer-bar">
+    <view class="price-line">
+      <text class="currency">¥</text>
+      <text class="price-num">{{depositText}}</text>
+      <text class="price-label">订金</text>
+    </view>
+    <input class="phone-inp" type="number" maxlength="11" placeholder="11位手机号" value="{{contactPhone}}" bindinput="onPhoneInput" />
+    <button class="btn-confirm" loading="{{submitting}}" disabled="{{submitting}}" bindtap="onConfirm">确认预定</button>
+  </view>
+</view>

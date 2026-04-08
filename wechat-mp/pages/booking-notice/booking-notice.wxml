@@ -1,0 +1,7 @@
+<view class="wrap">
+  <view class="title">{{noticeTitle}}</view>
+  <scroll-view scroll-y class="body-scroll">
+    <text class="body-text" user-select>{{noticeBody}}</text>
+  </scroll-view>
+  <button class="btn-next" bindtap="onNext">下一步</button>
+</view>
