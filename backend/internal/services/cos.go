@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	cosBucket = "itsyourturnmy-1256887166"
-	cosRegion = "ap-singapore"
+	cosBucket = "xykitchen-1256887166"
+	cosRegion = "ap-shanghai"
 )
 
 var cosBaseURL = fmt.Sprintf("https://%s.cos.%s.myqcloud.com", cosBucket, cosRegion)
